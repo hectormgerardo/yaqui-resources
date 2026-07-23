@@ -19,5 +19,5 @@ Este es un tema recurrente del Grupo de Lingüistas del Noroeste. No es pertinen
 Al completar las anteriores será viable ejercer profesionalmente en yaqui.
 
 
-## Donaciones 
+## Support me 
 - https://buymeacoffee.com/hectormgerardo
