@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>VRT Annotator</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+<div id="app">
+
+    <header class="topbar">
+        <div class="brand">
+            VRT Annotator
+        </div>
+
+        <div class="file-controls">
+            <input
+                type="file"
+                id="file-input"
+                accept=".vrt"
+            >
+
+            <button id="upload-button">
+                Open VRT
+            </button>
+
+            <button id="export-button" disabled>
+                Export
+            </button>
+        </div>
+    </header>
+
+
+    <main class="workspace">
+
+        <aside class="sidebar">
+
+            <h2>Corpus</h2>
+
+            <div id="file-name">
+                No file loaded
+            </div>
+
+            <div id="sentence-list"></div>
+
+        </aside>
+
+
+        <section class="editor">
+
+            <div class="editor-header">
+
+                <div>
+                    <span id="sentence-number">
+                        Sentence 0
+                    </span>
+
+                    <span id="sentence-progress">
+                        0 / 0
+                    </span>
+                </div>
+
+                <div class="navigation">
+
+                    <button id="previous-button">
+                        ← Previous
+                    </button>
+
+                    <button id="next-button">
+                        Next →
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div id="sentence-container">
+
+                <div class="empty-state">
+                    Open a VRT file to begin.
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer class="statusbar">
+
+        <span id="status">
+            Ready
+        </span>
+
+    </footer>
+
+</div>
+
+<script
+    src="{{ url_for('static', filename='app.js') }}"
+></script>
+
+</body>
+</html>
