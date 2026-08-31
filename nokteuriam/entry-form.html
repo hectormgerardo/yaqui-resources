@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yaqui Dictionary — Add / Edit Entry</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+</head>
+<body>
+
+<header>
+  <h1>Yaqui Language Dictionary</h1>
+  <p class="subtitle">Add or edit an entry</p>
+  <nav>
+    <a href="index.html">Search dictionary</a> |
+    <a href="entry-form.html">Add / edit entry</a>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ---- Login gate ---- -->
+  <section id="login-panel">
+    <label for="login-email">Email</label>
+    <input type="text" id="login-email">
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password">
+    <button type="button" id="login-btn">Log in</button>
+    <p id="login-error"></p>
+  </section>
+
+  <!-- ---- Editing tools (hidden until logged in) ---- -->
+  <section id="editor-area" hidden>
+
+    <p><button type="button" id="logout-btn">Log out</button></p>
+
+    <section id="pick-entry-panel">
+      <label for="existing-entry-select">Edit an existing entry:</label><br>
+      <select id="existing-entry-select">
+        <option value="">— New entry —</option>
+      </select>
+    </section>
+
+    <form id="entry-form">
+
+      <label for="f-word">Word (as in corpus) *</label>
+      <input type="text" id="f-word" required>
+
+      <label for="f-lemma">Lemma (dictionary form)</label>
+      <input type="text" id="f-lemma">
+
+      <label for="f-pos">Part of speech</label>
+      <input type="text" id="f-pos" placeholder="e.g. noun, verb, adjective">
+
+      <label for="f-etymology">Etymology</label>
+      <textarea id="f-etymology" rows="2"></textarea>
+
+      <label for="f-def-es">Definition (Spanish)</label>
+      <textarea id="f-def-es" rows="2"></textarea>
+
+      <label for="f-def-en">Definition (English)</label>
+      <textarea id="f-def-en" rows="2"></textarea>
+
+      <label for="f-notes">Notes</label>
+      <textarea id="f-notes" rows="2"></textarea>
+
+      <label for="f-source">Source / corpus reference</label>
+      <input type="text" id="f-source">
+
+      <fieldset>
+        <legend>Audio</legend>
+        <p id="current-audio">No audio file yet.</p>
+        <label for="f-audio-file">Choose an audio file to upload</label>
+        <input type="file" id="f-audio-file" accept="audio/*">
+      </fieldset>
+
+      <fieldset>
+        <legend>Image</legend>
+        <p id="current-image">No image file yet.</p>
+        <label for="f-image-file">Choose an image file to upload</label>
+        <input type="file" id="f-image-file" accept="image/*">
+      </fieldset>
+
+      <fieldset>
+        <legend>Cognates</legend>
+        <div id="cognates-rows">
+          <!-- dynamic rows inserted by form.js -->
+        </div>
+        <button type="button" id="add-cognate-row">+ Add cognate</button>
+      </fieldset>
+
+      <p>
+        <button type="submit">Save entry</button>
+        <button type="button" id="clear-form-btn">Clear form</button>
+      </p>
+
+    </form>
+
+    <p id="save-status" hidden></p>
+
+    <section id="import-panel">
+      <h2>Bulk import from spreadsheet</h2>
+      <p>Accepts .csv or .xlsx files with the columns shown in <code>sample_import.csv</code>. Bulk import does not upload media files — set audio_path/image_path only if you've already uploaded that file separately and know its path.</p>
+      <input type="file" id="import-file" accept=".csv,.xlsx,.xls">
+      <button type="button" id="import-btn">Import</button>
+      <p id="import-result"></p>
+    </section>
+
+  </section>
+
+</main>
+
+<footer>
+  <p><a href="index.html">&larr; Back to search</a></p>
+</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="form.js"></script>
+</body>
+</html>

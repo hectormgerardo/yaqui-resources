@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yaqui Dictionary — Search</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <h1>Yaqui Language Dictionary</h1>
+  <p class="subtitle">A digitization and preservation project</p>
+  <nav>
+    <a href="index.html">Search dictionary</a> |
+    <a href="entry-form.html">Add / edit entry</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="search-panel">
+    <label for="search-input">Search word, lemma, or definition:</label><br>
+    <input type="text" id="search-input" placeholder="Type here...">
+
+    <label for="pos-filter">Filter by part of speech:</label>
+    <select id="pos-filter">
+      <option value="">All</option>
+    </select>
+
+    <p id="result-count"></p>
+  </section>
+
+  <section id="results">
+    <!-- Entries are rendered here by script.js -->
+  </section>
+
+  <section id="entry-template" hidden>
+    <!-- Template markup reference, not rendered directly -->
+  </section>
+
+</main>
+
+<footer>
+  <p>Entries: <span id="total-count">0</span> | Data source: Supabase database</p>
+</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
