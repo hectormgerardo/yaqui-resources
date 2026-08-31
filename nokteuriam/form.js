@@ -85,7 +85,7 @@ function loadEntryIntoForm(id) {
 
   document.getElementById("f-word").value = entry.word || "";
   document.getElementById("f-lemma").value = entry.lemma || "";
-  document.getElementById("f-pos").value = entry.part_of_speech || "";
+  setPosField(entry.part_of_speech || "");
   document.getElementById("f-etymology").value = entry.etymology || "";
   document.getElementById("f-def-es").value = entry.definition_es || "";
   document.getElementById("f-def-en").value = entry.definition_en || "";
@@ -119,6 +119,7 @@ function clearForm() {
   pendingImageFile = null;
   document.getElementById("entry-form").reset();
   document.getElementById("existing-entry-select").value = "";
+  document.getElementById("f-pos-other").hidden = true;
   document.getElementById("current-audio").textContent = "No audio file yet.";
   document.getElementById("current-image").textContent = "No image file yet.";
   const rowsContainer = document.getElementById("cognates-rows");
@@ -127,6 +128,10 @@ function clearForm() {
 }
 
 document.getElementById("clear-form-btn").addEventListener("click", clearForm);
+
+document.getElementById("f-pos").addEventListener("change", (e) => {
+  document.getElementById("f-pos-other").hidden = (e.target.value !== "other");
+});
 
 document.getElementById("f-audio-file").addEventListener("change", (e) => {
   pendingAudioFile = e.target.files[0] || null;
@@ -165,6 +170,34 @@ function collectCognates() {
     .filter(c => c.language || c.form);
 }
 
+function setPosField(value) {
+  const select = document.getElementById("f-pos");
+  const otherInput = document.getElementById("f-pos-other");
+  const knownValues = [...select.options].map(o => o.value).filter(v => v && v !== "other");
+
+  if (!value) {
+    select.value = "";
+    otherInput.hidden = true;
+    otherInput.value = "";
+  } else if (knownValues.includes(value)) {
+    select.value = value;
+    otherInput.hidden = true;
+    otherInput.value = "";
+  } else {
+    select.value = "other";
+    otherInput.hidden = false;
+    otherInput.value = value;
+  }
+}
+
+function getPosField() {
+  const select = document.getElementById("f-pos");
+  if (select.value === "other") {
+    return document.getElementById("f-pos-other").value.trim();
+  }
+  return select.value;
+}
+
 function escapeAttr(str) {
   return String(str || "").replaceAll('"', "&quot;");
 }
@@ -183,7 +216,7 @@ document.getElementById("entry-form").addEventListener("submit", async (e) => {
     const entry = {
       word: document.getElementById("f-word").value.trim(),
       lemma: document.getElementById("f-lemma").value.trim() || document.getElementById("f-word").value.trim(),
-      part_of_speech: document.getElementById("f-pos").value.trim(),
+      part_of_speech: getPosField(),
       etymology: document.getElementById("f-etymology").value.trim(),
       definition_es: document.getElementById("f-def-es").value.trim(),
       definition_en: document.getElementById("f-def-en").value.trim(),

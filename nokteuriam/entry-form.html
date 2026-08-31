@@ -51,7 +51,23 @@
       <input type="text" id="f-lemma">
 
       <label for="f-pos">Part of speech</label>
-      <input type="text" id="f-pos" placeholder="e.g. noun, verb, adjective">
+      <select id="f-pos">
+        <option value="">— Select —</option>
+        <option value="noun">noun</option>
+        <option value="verb">verb</option>
+        <option value="adjective">adjective</option>
+        <option value="adverb">adverb</option>
+        <option value="pronoun">pronoun</option>
+        <option value="postposition">postposition</option>
+        <option value="preposition">preposition</option>
+        <option value="conjunction">conjunction</option>
+        <option value="interjection">interjection</option>
+        <option value="particle">particle</option>
+        <option value="numeral">numeral</option>
+        <option value="demonstrative">demonstrative</option>
+        <option value="other">other (specify)</option>
+      </select>
+      <input type="text" id="f-pos-other" placeholder="Specify part of speech" hidden>
 
       <label for="f-etymology">Etymology</label>
       <textarea id="f-etymology" rows="2"></textarea>
