@@ -1,6 +1,8 @@
 // ---- State ----
 let entries = [];
 let cognatesByEntryId = {};
+let categoryOptions = [];
+let categoryPaths = {};
 
 // ---- Load data from the database ----
 async function loadDictionary() {
@@ -9,7 +11,13 @@ async function loadDictionary() {
     entries = result.entries;
     cognatesByEntryId = result.cognatesByEntry;
 
+    const categories = await loadCategories();
+    const built = buildCategoryOptions(categories);
+    categoryOptions = built.options;
+    categoryPaths = built.pathById;
+
     populatePosFilter();
+    populateCategoryFilter();
     renderEntries(entries);
     document.getElementById("total-count").textContent = entries.length;
   } catch (err) {
@@ -17,6 +25,17 @@ async function loadDictionary() {
     document.getElementById("results").innerHTML =
       `<p>Could not load the dictionary. Check that config.js has your real Supabase URL and key.</p>`;
   }
+}
+
+function populateCategoryFilter() {
+  const select = document.getElementById("category-filter");
+  select.innerHTML = '<option value="">All</option>';
+  categoryOptions.forEach(opt => {
+    const el = document.createElement("option");
+    el.value = opt.id;
+    el.textContent = opt.label;
+    select.appendChild(el);
+  });
 }
 
 function populatePosFilter() {
@@ -49,6 +68,8 @@ function renderEntries(list) {
         ${entry.etymology ? `<dt>Etymology</dt><dd>${escapeHtml(entry.etymology)}</dd>` : ""}
         <dt>Definition (ES)</dt><dd>${escapeHtml(entry.definition_es || "—")}</dd>
         <dt>Definition (EN)</dt><dd>${escapeHtml(entry.definition_en || "—")}</dd>
+        ${entry.definition_yaq ? `<dt>Definition (Yaqui)</dt><dd>${escapeHtml(entry.definition_yaq)}</dd>` : ""}
+        ${entry.category_id && categoryPaths[entry.category_id] ? `<dt>Category</dt><dd>${escapeHtml(categoryPaths[entry.category_id])}</dd>` : ""}
         ${cognates.length ? `
           <dt>Cognates</dt>
           <dd>
@@ -73,15 +94,17 @@ function renderEntries(list) {
 function applyFilters() {
   const query = document.getElementById("search-input").value.trim().toLowerCase();
   const pos = document.getElementById("pos-filter").value;
+  const category = document.getElementById("category-filter").value;
 
   const filtered = entries.filter(entry => {
     const matchesQuery = !query || [
-      entry.word, entry.lemma, entry.definition_es, entry.definition_en
+      entry.word, entry.lemma, entry.definition_es, entry.definition_en, entry.definition_yaq
     ].some(field => field && field.toLowerCase().includes(query));
 
     const matchesPos = !pos || entry.part_of_speech === pos;
+    const matchesCategory = !category || entry.category_id === category;
 
-    return matchesQuery && matchesPos;
+    return matchesQuery && matchesPos && matchesCategory;
   });
 
   renderEntries(filtered);
@@ -109,5 +132,6 @@ function escapeHtml(str) {
 
 document.getElementById("search-input").addEventListener("input", applyFilters);
 document.getElementById("pos-filter").addEventListener("change", applyFilters);
+document.getElementById("category-filter").addEventListener("change", applyFilters);
 
 loadDictionary();

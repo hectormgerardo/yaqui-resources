@@ -5,7 +5,8 @@
 <title>Yaqui Dictionary — Add / Edit Entry</title>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="data.js"></script>
+<script src="form.js"></script>
 </head>
 <body>
 
@@ -14,7 +15,8 @@
   <p class="subtitle">Add or edit an entry</p>
   <nav>
     <a href="index.html">Search dictionary</a> |
-    <a href="entry-form.html">Add / edit entry</a>
+    <a href="entry-form.html">Add / edit entry</a> |
+    <a href="categories.html">Manage categories</a>
   </nav>
 </header>
 
@@ -50,24 +52,11 @@
       <label for="f-lemma">Lemma (dictionary form)</label>
       <input type="text" id="f-lemma">
 
-      <label for="f-pos">Part of speech</label>
-      <select id="f-pos">
-        <option value="">— Select —</option>
-        <option value="noun">noun</option>
-        <option value="verb">verb</option>
-        <option value="adjective">adjective</option>
-        <option value="adverb">adverb</option>
-        <option value="pronoun">pronoun</option>
-        <option value="postposition">postposition</option>
-        <option value="preposition">preposition</option>
-        <option value="conjunction">conjunction</option>
-        <option value="interjection">interjection</option>
-        <option value="particle">particle</option>
-        <option value="numeral">numeral</option>
-        <option value="demonstrative">demonstrative</option>
-        <option value="other">other (specify)</option>
-      </select>
-      <input type="text" id="f-pos-other" placeholder="Specify part of speech" hidden>
+      <label for="f-pos">Part of speech (type to search)</label>
+      <input type="text" id="f-pos" list="pos-datalist" placeholder="e.g. noun, verb, phrase...">
+      <datalist id="pos-datalist"></datalist>
+
+      <p id="pos-hint" class="hint"></p>
 
       <label for="f-etymology">Etymology</label>
       <textarea id="f-etymology" rows="2"></textarea>
@@ -78,6 +67,14 @@
       <label for="f-def-en">Definition (English)</label>
       <textarea id="f-def-en" rows="2"></textarea>
 
+      <label for="f-def-yaq">Definition (Yaqui)</label>
+      <textarea id="f-def-yaq" rows="2"></textarea>
+
+      <label for="f-category">Category</label>
+      <select id="f-category">
+        <option value="">— None —</option>
+      </select>
+
       <label for="f-notes">Notes</label>
       <textarea id="f-notes" rows="2"></textarea>
 
@@ -87,15 +84,45 @@
       <fieldset>
         <legend>Audio</legend>
         <p id="current-audio">No audio file yet.</p>
+
         <label for="f-audio-file">Choose an audio file to upload</label>
         <input type="file" id="f-audio-file" accept="audio/*">
+
+        <p class="or-divider">— or —</p>
+        <button type="button" id="record-btn">● Record</button>
+        <span id="record-timer"></span>
+        <p id="record-status"></p>
+        <audio id="record-preview" controls hidden></audio>
       </fieldset>
 
       <fieldset>
         <legend>Image</legend>
         <p id="current-image">No image file yet.</p>
-        <label for="f-image-file">Choose an image file to upload</label>
-        <input type="file" id="f-image-file" accept="image/*">
+
+        <div class="toggle-row">
+          <label><input type="radio" name="image-mode" value="upload" checked> Upload a file</label>
+          <label><input type="radio" name="image-mode" value="draw"> Draw it yourself</label>
+        </div>
+
+        <div id="image-upload-mode">
+          <label for="f-image-file">Choose an image file to upload</label>
+          <input type="file" id="f-image-file" accept="image/*">
+        </div>
+
+        <div id="image-draw-mode" hidden>
+          <svg id="draw-canvas" viewBox="0 0 400 300"></svg><br>
+          <button type="button" id="draw-undo-btn">Undo stroke</button>
+          <button type="button" id="draw-clear-btn">Clear</button>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend id="variants-legend">Variants / alternate written forms</legend>
+        <p class="hint" id="variants-hint">Alternate spellings or forms that should still be findable in search — e.g. a contracted form used after a determiner, or an irregular form for plural subjects.</p>
+        <div id="variants-rows">
+          <!-- dynamic rows inserted by form.js -->
+        </div>
+        <button type="button" id="add-variant-row">+ Add variant</button>
       </fieldset>
 
       <fieldset>
@@ -105,6 +132,8 @@
         </div>
         <button type="button" id="add-cognate-row">+ Add cognate</button>
       </fieldset>
+
+      <p id="recorded-by-note" class="hint"></p>
 
       <p>
         <button type="submit">Save entry</button>
@@ -117,7 +146,7 @@
 
     <section id="import-panel">
       <h2>Bulk import from spreadsheet</h2>
-      <p>Accepts .csv or .xlsx files with the columns shown in <code>sample_import.csv</code>. Bulk import does not upload media files — set audio_path/image_path only if you've already uploaded that file separately and know its path.</p>
+      <p>Accepts .csv or .xlsx files with the columns shown in <code>sample_import.csv</code>. The <code>category_name</code> column must exactly match an existing category name (create it first under "Manage categories") — unmatched or blank names are simply left uncategorized. Bulk import does not upload media files — set audio_path/image_path only if you've already uploaded that file separately and know its path.</p>
       <input type="file" id="import-file" accept=".csv,.xlsx,.xls">
       <button type="button" id="import-btn">Import</button>
       <p id="import-result"></p>
@@ -130,9 +159,7 @@
 <footer>
   <p><a href="index.html">&larr; Back to search</a></p>
 </footer>
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="config.js"></script>
-<script src="data.js"></script>
-<script src="form.js"></script>
 </body>
 </html>

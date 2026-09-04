@@ -208,3 +208,16 @@ input[type="file"] {
   margin-top: 6px;
   font-family: inherit;
 }
+
+.category-row {
+  padding: 4px 0;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 500px;
+}
+
+#add-category-panel {
+  max-width: 400px;
+}

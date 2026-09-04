@@ -1,5 +1,7 @@
 let currentEntries = [];
 let currentCognatesByEntry = {};
+let currentCategoryOptions = [];
+let currentCategoryPaths = {};
 let editingId = null; // null = new entry
 let pendingAudioFile = null;
 let pendingImageFile = null;
@@ -49,7 +51,25 @@ async function init() {
   currentEntries = result.entries;
   currentCognatesByEntry = result.cognatesByEntry;
   populateExistingSelect();
-  addCognateRow();
+
+  const categories = await loadCategories();
+  const built = buildCategoryOptions(categories);
+  currentCategoryOptions = built.options;
+  currentCategoryPaths = built.pathById;
+  populateCategorySelect();
+
+  // addCognateRow();
+}
+
+function populateCategorySelect() {
+  const select = document.getElementById("f-category");
+  select.innerHTML = '<option value="">— None —</option>';
+  currentCategoryOptions.forEach(opt => {
+    const el = document.createElement("option");
+    el.value = opt.id;
+    el.textContent = opt.label;
+    select.appendChild(el);
+  });
 }
 
 function populateExistingSelect() {
@@ -89,6 +109,8 @@ function loadEntryIntoForm(id) {
   document.getElementById("f-etymology").value = entry.etymology || "";
   document.getElementById("f-def-es").value = entry.definition_es || "";
   document.getElementById("f-def-en").value = entry.definition_en || "";
+  document.getElementById("f-def-yaq").value = entry.definition_yaq || "";
+  document.getElementById("f-category").value = entry.category_id || "";
   document.getElementById("f-notes").value = entry.notes || "";
   document.getElementById("f-source").value = entry.source || "";
 
@@ -220,6 +242,8 @@ document.getElementById("entry-form").addEventListener("submit", async (e) => {
       etymology: document.getElementById("f-etymology").value.trim(),
       definition_es: document.getElementById("f-def-es").value.trim(),
       definition_en: document.getElementById("f-def-en").value.trim(),
+      definition_yaq: document.getElementById("f-def-yaq").value.trim(),
+      category_id: document.getElementById("f-category").value || null,
       notes: document.getElementById("f-notes").value.trim(),
       source: document.getElementById("f-source").value.trim(),
       audio_status: existing ? existing.audio_status : "unavailable",

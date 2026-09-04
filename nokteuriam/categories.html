@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Yaqui Dictionary — Categories</title>
+<link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<header>
+  <h1>Yaqui Language Dictionary</h1>
+  <p class="subtitle">Manage thesaurus categories</p>
+  <nav>
+    <a href="index.html">Search dictionary</a> |
+    <a href="entry-form.html">Add / edit entry</a> |
+    <a href="categories.html">Manage categories</a>
+  </nav>
+</header>
+
+<main>
+
+  <section id="login-panel">
+    <label for="login-email">Email</label>
+    <input type="text" id="login-email">
+    <label for="login-password">Password</label>
+    <input type="password" id="login-password">
+    <button type="button" id="login-btn">Log in</button>
+    <p id="login-error"></p>
+  </section>
+
+  <section id="editor-area" hidden>
+
+    <p><button type="button" id="logout-btn">Log out</button></p>
+
+    <section id="add-category-panel">
+      <h2>Add a category</h2>
+      <label for="c-name">Category name</label>
+      <input type="text" id="c-name" placeholder="e.g. Animals">
+
+      <label for="c-parent">Parent category (optional)</label>
+      <select id="c-parent">
+        <option value="">— Top level —</option>
+      </select>
+
+      <p><button type="button" id="add-category-btn">Add category</button></p>
+      <p id="add-category-status"></p>
+    </section>
+
+    <section id="category-tree-panel">
+      <h2>Existing categories</h2>
+      <div id="category-tree">
+        <!-- rendered by categories.js -->
+      </div>
+    </section>
+
+  </section>
+
+</main>
+
+<footer>
+  <p><a href="index.html">&larr; Back to search</a></p>
+</footer>
+
+<script src="config.js"></script>
+<script src="data.js"></script>
+<script src="categories.js"></script>
+</body>
+</html>

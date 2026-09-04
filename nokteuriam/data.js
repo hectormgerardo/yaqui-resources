@@ -41,19 +41,31 @@ async function loadAllEntries() {
     .select("*");
   if (cognatesError) throw cognatesError;
 
+  const { data: variants, error: variantsError } = await supabaseClient
+    .from("entry_variants")
+    .select("*");
+  if (variantsError) throw variantsError;
+
   const cognatesByEntry = {};
   cognates.forEach(c => {
     if (!cognatesByEntry[c.entry_id]) cognatesByEntry[c.entry_id] = [];
     cognatesByEntry[c.entry_id].push(c);
   });
 
-  return { entries, cognatesByEntry };
+  const variantsByEntry = {};
+  variants.forEach(v => {
+    if (!variantsByEntry[v.entry_id]) variantsByEntry[v.entry_id] = [];
+    variantsByEntry[v.entry_id].push(v);
+  });
+
+  return { entries, cognatesByEntry, variantsByEntry };
 }
 
 // ---- Save (insert or update) one entry + its cognates ----
 // entry.id present -> update; absent/null -> insert (DB generates the id).
 
-async function upsertEntry(entry, cognatesList) {
+async function upsertEntry(entry, cognatesList, variantsList) {
+  variantsList = variantsList || [];
   let entryId = entry.id;
 
   if (entryId) {
@@ -74,6 +86,16 @@ async function upsertEntry(entry, cognatesList) {
     const rows = cognatesList.map(c => ({ ...c, entry_id: entryId }));
     const { error: insertError } = await supabaseClient.from("cognates").insert(rows);
     if (insertError) throw insertError;
+  }
+
+  // Same replace-all strategy for variants.
+  const { error: deleteVariantsError } = await supabaseClient.from("entry_variants").delete().eq("entry_id", entryId);
+  if (deleteVariantsError) throw deleteVariantsError;
+
+  if (variantsList.length > 0) {
+    const variantRows = variantsList.map(v => ({ ...v, entry_id: entryId }));
+    const { error: insertVariantsError } = await supabaseClient.from("entry_variants").insert(variantRows);
+    if (insertVariantsError) throw insertVariantsError;
   }
 
   return entryId;
@@ -99,6 +121,62 @@ function mediaPublicUrl(path) {
   return data.publicUrl;
 }
 
+// ---- Categories (thesaurus-style hierarchy) ----
+
+async function loadCategories() {
+  const { data, error } = await supabaseClient
+    .from("categories")
+    .select("*")
+    .order("name", { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+async function createCategory(name, parentId) {
+  const { data, error } = await supabaseClient
+    .from("categories")
+    .insert({ name, parent_id: parentId || null })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function deleteCategory(id) {
+  const { error } = await supabaseClient.from("categories").delete().eq("id", id);
+  if (error) throw error;
+}
+
+// Turns a flat categories list into a depth-ordered array with
+// indentation, e.g. "Nature", "— Animals", "— — Birds", suitable
+// for a plain <select>. Also returns a map of id -> full breadcrumb
+// path (e.g. "Nature > Animals > Birds") for display elsewhere.
+function buildCategoryOptions(categories) {
+  const byParent = {};
+  categories.forEach(c => {
+    const key = c.parent_id || "root";
+    if (!byParent[key]) byParent[key] = [];
+    byParent[key].push(c);
+  });
+  Object.values(byParent).forEach(list => list.sort((a, b) => a.name.localeCompare(b.name)));
+
+  const options = [];
+  const pathById = {};
+
+  function walk(parentKey, depth, prefixPath) {
+    const children = byParent[parentKey] || [];
+    children.forEach(cat => {
+      const path = prefixPath ? `${prefixPath} > ${cat.name}` : cat.name;
+      pathById[cat.id] = path;
+      options.push({ id: cat.id, label: "— ".repeat(depth) + cat.name, depth });
+      walk(cat.id, depth + 1, path);
+    });
+  }
+  walk("root", 0, "");
+
+  return { options, pathById };
+}
+
 // ============================================================
 // Spreadsheet import (CSV or Excel) — same column format as before,
 // now writing straight to the database instead of localStorage.
@@ -120,7 +198,7 @@ function parseCognatesCell(cell) {
   }).filter(c => c.language || c.form);
 }
 
-function rowToEntry(row) {
+function rowToEntry(row, categoryIdByName) {
   const entry = {
     word: row.word || "",
     lemma: row.lemma || row.word || "",
@@ -128,12 +206,14 @@ function rowToEntry(row) {
     etymology: row.etymology || "",
     definition_es: row.definition_es || "",
     definition_en: row.definition_en || "",
+    definition_yaq: row.definition_yaq || "",
     notes: row.notes || "",
     source: row.source || "",
     audio_status: (row.audio_status || "unavailable").trim().toLowerCase() === "available" ? "available" : "unavailable",
     audio_path: row.audio_path || null,
     image_status: (row.image_status || "unavailable").trim().toLowerCase() === "available" ? "available" : "unavailable",
-    image_path: row.image_path || null
+    image_path: row.image_path || null,
+    category_id: (row.category_name && categoryIdByName[row.category_name.trim().toLowerCase()]) || null
   };
   const cognates = parseCognatesCell(row.cognates);
   return { entry, cognates };
@@ -184,9 +264,13 @@ async function readSpreadsheetFile(file) {
 }
 
 async function importRows(rows) {
+  const categories = await loadCategories();
+  const categoryIdByName = {};
+  categories.forEach(c => categoryIdByName[c.name.trim().toLowerCase()] = c.id);
+
   let count = 0;
   for (const row of rows) {
-    const { entry, cognates } = rowToEntry(row);
+    const { entry, cognates } = rowToEntry(row, categoryIdByName);
     await upsertEntry(entry, cognates);
     count++;
   }
